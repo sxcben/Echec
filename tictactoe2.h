@@ -146,8 +146,8 @@ void Jouer(Grille grille) {
         grille.setTour(false);
         vector <int> v = MinMax(grille,profondeur_max,grille.getTour,symbole_joueur,symbole_ordi);
         ligne = v[1];
-        colonne = v[2]
-        grille.PlacerCoup(ligne, colonne, symbole_ordi)
+        colonne = v[2];
+        grille.PlacerCoup(ligne, colonne, symbole_ordi);
 
         if (grille.EstGagnant(symbole_ordi)) {
             grille.AfficherGrille();
