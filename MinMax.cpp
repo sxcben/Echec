@@ -3,7 +3,7 @@
 #include "titactoe.h"
 
 
-int valeur_tictactoe(Grille P,char s='O')
+int valeur_tictactoe(Grille P,char s='X')
 {
     int v;
     if (P.EstGagnant(s)) {v = std::numeric_limits<int>::max();}
@@ -34,7 +34,7 @@ int MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 {
     int m;
     int MinMax;
-    if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,O);}
+    if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,X);}
 
     if (tour)  // si c'est le tour du joueur humain
     {
