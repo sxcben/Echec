@@ -46,9 +46,9 @@ int MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
         {
             Grille G = P;
             coup = moves[i];
-            G.PlacerCoup(coup.first,coup.second,'X');
+            G.PlacerCoup(coup.first,coup.second, X);
 
-            MinMax = MinMax(G, profondeur-1, !tour, char X='X',char O='O');
+            MinMax = MinMax(G, profondeur-1, !tour, X, O);
             if (MinMax > m)
 
                 {m=MinMax;}
@@ -65,8 +65,8 @@ int MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
         {
             Grille G = P;
             coup = moves[i];
-            G.PlacerCoup(coup.first,coup.second,'O');
-            MinMax = MinMax(G, profondeur-1, !tour, char X='X',char O='O');
+            G.PlacerCoup(coup.first,coup.second, O);
+            MinMax = MinMax(G, profondeur-1, !tour, X, O);
             if (MinMax < m)
 
             {m=MinMax;}
@@ -81,7 +81,7 @@ int MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='X',char O='O')
 {
     int score;
-     if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,O);}
+     if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,X);}
 
     if (tour) // si c'est au joueur humain de jouer
     {
@@ -92,8 +92,8 @@ int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='
         {
             Grille G = P;
             coup = moves[i];
-            G.PlacerCoup(coup.first,coup.second,'X');
-            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+            G.PlacerCoup(coup.first,coup.second, X);
+            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta, X, O);
             if (score > alpha) {alpha = score;} //on a trouvé un meilleur coup
             if (alpha >= beta) {return alpha;} // on coupe le noeud
         }
@@ -110,8 +110,8 @@ int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='
         {
             Grille G = P;
             coup = moves[i];
-            G.PlacerCoup(coup.first,coup.second,'X');
-            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+            G.PlacerCoup(coup.first,coup.second, O);
+            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta, X, O);
             if (score < beta) {beta = score;} //l'ordi a trouvé un "pire" coup
             if (alpha >= beta) {return alpha;} // on coupe le noeud
         }
