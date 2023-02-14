@@ -1,5 +1,6 @@
 #ifndef TICTACTOE2_H_INCLUDED
 #define TICTACTOE2_H_INCLUDED
+
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
@@ -7,7 +8,7 @@
 
 
 using namespace std;
-
+int profondeur_max=10;
 class Grille
 {
 public:
@@ -29,7 +30,7 @@ public:
         }
     }
 
-    // Affiche l'état actuel de la grille
+    // Affiche l'Ã©tat actuel de la grille
     void AfficherGrille() const {
         cout << endl;
         cout << "Etat de la grille : " << endl;
@@ -58,21 +59,21 @@ public:
 
     // Retourne true si une grille est gagnante et false sinon
     bool EstGagnant(char symbole) const {
-        // Vérifie les lignes
+        // VÃ©rifie les lignes
         for (int i = 0; i < 3; i++) {
             if (grille_[i][0] == symbole && grille_[i][1] == symbole && grille_[i][2] == symbole) {
                 return true;
             }
         }
 
-        // Vérifie les colonnes
+        // VÃ©rifie les colonnes
         for (int i = 0; i < 3; i++) {
             if (grille_[0][i] == symbole && grille_[1][i] == symbole && grille_[2][i] == symbole) {
                 return true;
             }
         }
 
-        // Vérifie les diagonales
+        // VÃ©rifie les diagonales
         if (grille_[0][0] == symbole && grille_[1][1] == symbole && grille_[2][2] == symbole) {
             return true;
         }
@@ -143,12 +144,11 @@ void Jouer(Grille grille) {
 
         // Tour de l'ordinateur
         grille.setTour(false);
-        ligne = rand() % 3;
-        colonne = rand() % 3;
-        while (!grille.PlacerCoup(ligne, colonne, symbole_ordi)) {
-            ligne = rand() % 3;
-            colonne = rand() % 3;
-        }
+        vector <int> v = MinMax(grille,profondeur_max,grille.getTour,symbole_joueur,symbole_ordi);
+        ligne = v[1];
+        colonne = v[2]
+        grille.PlacerCoup(ligne, colonne, symbole_ordi)
+
         if (grille.EstGagnant(symbole_ordi)) {
             grille.AfficherGrille();
             cout << "L'ordinateur gagne !" << endl;
@@ -156,5 +156,3 @@ void Jouer(Grille grille) {
         }
     }
 }
-
-#endif // TICTACTOE2_H_INCLUDED
