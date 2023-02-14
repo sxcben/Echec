@@ -30,13 +30,13 @@ int valeur_tictactoe(Grille P,char s='O')
 //
 //}
 
-int MinMax(Grille P, int profondeur,char X='X',char O='O')
+int MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 {
     int m;
     int MinMax;
     if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,O);}
 
-    if (P.getturn())  // si c'est le tour du jour humain
+    if (tour)  // si c'est le tour du joueur humain
     {
         m = std::numeric_limits<int>::min();
         vector<pair<int, int>> moves=P.getPossibleMoves();   // vecteur des coups possibles
@@ -44,21 +44,29 @@ int MinMax(Grille P, int profondeur,char X='X',char O='O')
         int L = moves.size();
         for (int i=0;i<L;i++)
         {
+            Grille G = P;
             coup = moves[i];
+            G.PlacerCoup(coup.first,coup.second,'X');
 
-            MinMax = MinMax(, profondeur-1);
+            MinMax = MinMax(G, profondeur-1, !tour, char X='X',char O='O');
             if (MinMax > m)
 
-                {m=MinMax};
+                {m=MinMax;}
         }
         return m;
     }
-    if (!P.getturn())
+    if (!tour)
     {
         m = std::numeric_limits<int>::max();
-        for
+        vector<pair<int, int>> moves=P.getPossibleMoves();   // vecteur des coups possibles
+        pair<int, int> coup;
+        int L = moves.size();
+        for (int i=0;i<L;i++)
         {
-            MinMax = MinMax(, profondeur-1);
+            Grille G = P;
+            coup = moves[i];
+            G.PlacerCoup(coup.first,coup.second,'O');
+            MinMax = MinMax(G, profondeur-1, !tour, char X='X',char O='O');
             if (MinMax < m)
 
             {m=MinMax;}
@@ -69,30 +77,42 @@ int MinMax(Grille P, int profondeur,char X='X',char O='O')
 
 }
 
-//Au début, alpha=-inf, beta=+inf
-int AlphaBeta(Grille P, int profondeur, int alpha, int beta)
+//Au dÃ©but, alpha=-inf, beta=+inf
+int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='X',char O='O')
 {
     int score;
-    if (terminale(P)||profondeur==0)  {return valeur(P);}
+     if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,O);}
 
-    if (Position.joueur=="humain")
+    if (tour) // si c'est au joueur humain de jouer
     {
-        for
+        vector<pair<int, int>> moves=P.getPossibleMoves();   // vecteur des coups possibles
+        pair<int, int> coup;
+        int L = moves.size();
+        for (int i=0;i<L;i++)
         {
-            score = AlphaBeta(, profondeur-1, alpha, beta);
-            if (score > alpha) {alpha = score;} //on a trouvé un meilleur coup
+            Grille G = P;
+            coup = moves[i];
+            G.PlacerCoup(coup.first,coup.second,'X');
+            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+            if (score > alpha) {alpha = score;} //on a trouvÃ© un meilleur coup
             if (alpha >= beta) {return alpha;} // on coupe le noeud
         }
         return alpha; //meilleur coup
 
     }
 
-        if (Position.joueur=="ordi")
+        if (!tour)
     {
-        for
+        vector<pair<int, int>> moves=P.getPossibleMoves();   // vecteur des coups possibles
+        pair<int, int> coup;
+        int L = moves.size();
+        for (int i=0;i<L;i++)
         {
-            score = AlphaBeta(, profondeur-1, alpha, beta);
-            if (score < beta) {beta = score;} //l'ordi a trouvé un "pire" coup
+            Grille G = P;
+            coup = moves[i];
+            G.PlacerCoup(coup.first,coup.second,'X');
+            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+            if (score < beta) {beta = score;} //l'ordi a trouvÃ© un "pire" coup
             if (alpha >= beta) {return alpha;} // on coupe le noeud
         }
         return beta; //meilleur coup pour l'ordi
