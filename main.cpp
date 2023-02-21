@@ -1,5 +1,5 @@
-#include "tictactoe2.h"
-#include "echecs3.h"
+#include "tictactoe.h"
+// #include "echecs3.h"
 
 #include <iostream>
 #include <vector>

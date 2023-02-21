@@ -1,7 +1,6 @@
 #include <iostream>
 #include <limits>
-#include "titactoe.h"
-
+#include "tictactoe.h"
 
 int valeur_tictactoe(Grille P,char s='X')
 {
