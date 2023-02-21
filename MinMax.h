@@ -33,7 +33,7 @@ int valeur_tictactoe(Grille P,char s='X')
 
 vector<int> MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 {
-    int m;
+    int m = 0;
     vector <int> v = {m,0,0};
     pair<int,int> choix;
     int Minmax;
@@ -83,13 +83,13 @@ vector<int> MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
                     }
 
         }
-        return v;
     }
-
+    return v;
     }
+    return v;
 }
 
-//Au d�but, alpha=-inf, beta=+inf
+//Au debut, alpha=-inf, beta=+inf
 //int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='X',char O='O')
 //{
 //    int score;
@@ -106,7 +106,7 @@ vector<int> MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 //            coup = moves[i];
 //            G.PlacerCoup(coup.first,coup.second,'X');
 //            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
-//            if (score > alpha) {alpha = score;} //on a trouv� un meilleur coup
+//            if (score > alpha) {alpha = score;} //on a trouve un meilleur coup
 //            if (alpha >= beta) {return alpha;} // on coupe le noeud
 //        }
 //        return alpha; //meilleur coup
@@ -124,7 +124,7 @@ vector<int> MinMax(Grille P, int profondeur, bool tour, char X='X',char O='O')
 //            coup = moves[i];
 //            G.PlacerCoup(coup.first,coup.second,'X');
 //            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
-//            if (score < beta) {beta = score;} //l'ordi a trouv� un "pire" coup
+//            if (score < beta) {beta = score;} //l'ordi a trouve un "pire" coup
 //            if (alpha >= beta) {return alpha;} // on coupe le noeud
 //        }
 //        return beta; //meilleur coup pour l'ordi
