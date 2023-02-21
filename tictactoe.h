@@ -29,7 +29,7 @@ public:
         }
     }
 
-    // Affiche l'�tat actuel de la grille
+    // Affiche l'etat actuel de la grille
     void AfficherGrille() const {
         cout << endl;
         cout << "Etat de la grille : " << endl;
@@ -58,21 +58,21 @@ public:
 
     // Retourne true si une grille est gagnante et false sinon
     bool EstGagnant(char symbole) const {
-        // V�rifie les lignes
+        // Verifie les lignes
         for (int i = 0; i < 3; i++) {
             if (grille_[i][0] == symbole && grille_[i][1] == symbole && grille_[i][2] == symbole) {
                 return true;
             }
         }
 
-        // V�rifie les colonnes
+        // Verifie les colonnes
         for (int i = 0; i < 3; i++) {
             if (grille_[0][i] == symbole && grille_[1][i] == symbole && grille_[2][i] == symbole) {
                 return true;
             }
         }
 
-        // V�rifie les diagonales
+        // Verifie les diagonales
         if (grille_[0][0] == symbole && grille_[1][1] == symbole && grille_[2][2] == symbole) {
             return true;
         }
