@@ -88,7 +88,7 @@ bool Grille::game_over() const{
 
 int Grille::valeur_tictactoe(){
     char X='X';
-    char O='X';
+    char O='O';
     int v;
     if (this->EstGagnant(X)) {v = std::numeric_limits<int>::max();}
     else if (this->EstGagnant(O)) {v = std::numeric_limits<int>::min();}
@@ -140,7 +140,7 @@ void Jouer(Grille grille) {
         vector<pair<int, int>> moves=grille.CoupsPossibles();   // vecteur des coups possibles
         pair<int, int> coup;
         int L = moves.size();
-        // pour faire des coups aléatoires
+        // pour faire des coups alÃ©atoires
 //        std::srand(std::time(0));
 //        int randomIndex = std::rand() % grille.CoupsPossibles().size();
 //        pair <int,int> v = grille.CoupsPossibles()[randomIndex];
