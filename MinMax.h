@@ -94,19 +94,24 @@ pair<int,int> meilleur_coup(Grille P,int profondeur)
 //int AlphaBeta(Grille P, int profondeur, bool tour, int alpha, int beta, char X='X',char O='O')
 //{
 //    int score;
-//     if (P.EstPleine()||P.EstGagnant(X)||P.EstGagnant(O)||profondeur==0)  {return valeur_tictactoe(P,O);}
+//    vector<pair<int, int>> moves = P.CoupsPossibles(); // vecteur des coups possibles
+//    int L = moves.size();
+//
+//    if (P.game_over() || profondeur == 0) {
+    //    return P.valeur_tictactoe();
+//   }
 //
 //    if (tour) // si c'est au joueur humain de jouer
 //    {
-//        vector<pair<int, int>> moves=P.CoupsPossibles();   // vecteur des coups possibles
-//        pair<int, int> coup;
-//        int L = moves.size();
+//        score = std::numeric_limits<int>::min();
+//
+//
 //        for (int i=0;i<L;i++)
 //        {
 //            Grille G = P;
-//            coup = moves[i];
-//            G.PlacerCoup(coup.first,coup.second,'X');
-//            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+//            G.PlacerCoup(moves[i].first, moves[i].second, 'X');
+//            score = std::max(score, AlphaBeta(G, profondeur - 1, !tour, alpha, beta, X, O));
+//
 //            if (score > alpha) {alpha = score;} //on a trouve un meilleur coup
 //            if (alpha >= beta) {return alpha;} // on coupe le noeud
 //        }
@@ -116,15 +121,15 @@ pair<int,int> meilleur_coup(Grille P,int profondeur)
 //
 //        if (!tour)
 //    {
-//        vector<pair<int, int>> moves=P.CoupsPossibles();   // vecteur des coups possibles
-//        pair<int, int> coup;
-//        int L = moves.size();
+//        score = std::numeric_limits<int>::min();
+//
+//
 //        for (int i=0;i<L;i++)
 //        {
 //            Grille G = P;
-//            coup = moves[i];
-//            G.PlacerCoup(coup.first,coup.second,'X');
-//            score = AlphaBeta(G, profondeur-1, !tour, alpha, beta);
+//            G.PlacerCoup(moves[i].first, moves[i].second, 'X');
+//            score = std::max(score, AlphaBeta(G, profondeur - 1, !tour, alpha, beta, X, O));
+//
 //            if (score < beta) {beta = score;} //l'ordi a trouve un "pire" coup
 //            if (alpha >= beta) {return alpha;} // on coupe le noeud
 //        }
