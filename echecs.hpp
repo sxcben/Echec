@@ -489,7 +489,7 @@ public:
         int jTour = petitRoque ? 8 : 1;
         Piece* pRoi = getPiece(iRoi,jRoi);
         Piece* pTour = getPiece(iTour,jTour);
-        // On regarde si les pieces sont ‡ leurs places
+        // On regarde si les pieces sont √† leurs places
         if(pRoi == nullptr || pTour == nullptr) {
             return false;
         }
@@ -743,7 +743,7 @@ float MinMax(Echiquier* etat, int profondeur, float alpha, float beta, bool joue
             maxEval = max(maxEval, eval);
             alpha = max(alpha, eval);
             delete copieEtat;
-            if (beta <= alpha) break; // Èlagage alpha-bÍta
+            if (beta <= alpha) break; // √©lagage alpha-b√™ta
         }
         return maxEval;
     } else {
@@ -755,7 +755,7 @@ float MinMax(Echiquier* etat, int profondeur, float alpha, float beta, bool joue
             minEval = min(minEval, eval);
             beta = min(beta, eval);
             delete copieEtat;
-            if (beta <= alpha) break; // Èlagage alpha-bÍta
+            if (beta <= alpha) break; // √©lagage alpha-b√™ta
         }
         return minEval;
     }
@@ -781,7 +781,7 @@ pair<pair<int, int>, pair<int, int>> MinMaxWithID(Echiquier* etat, int profondeu
                 }
                 alpha = max(alpha, eval);
                 delete copieEtat;
-                if(beta <= alpha) break; // Èlagage alpha-bÍta
+                if(beta <= alpha) break; // √©lagage alpha-b√™ta
             }
         } else {
             minEval = INFINITY;
@@ -795,12 +795,12 @@ pair<pair<int, int>, pair<int, int>> MinMaxWithID(Echiquier* etat, int profondeu
                 }
                 beta = min(beta, eval);
                 delete copieEtat;
-                if(beta <= alpha) break; // Èlagage alpha-bÍta
+                if(beta <= alpha) break; // √©lagage alpha-b√™ta
             }
         }
         auto tFin = chrono::high_resolution_clock::now();
         auto duree = chrono::duration_cast<chrono::milliseconds>(tFin - tDebut).count();
-        if (duree > tempsMax) break; // finir si le temps est dÈpassÈ
+        if (duree > tempsMax) break; // finir si le temps est d√©pass√©
         profondeur++;
     }
     return meilleurCoup;
@@ -962,7 +962,7 @@ void JouerDeuxJoueurs() {
             }
             else {
                 // Conseil aleatoire pour le joueur
-                vector<pair<pair<int,int>,pair<int,int>>> coupsEx = echiquier->CoupsPossibles(true);
+                vector<pair<pair<int,int>,pair<int,int>>> coupsEx = echiquier->CoupsPossibles(false);
                 srand(time(nullptr));
                 int indEx = rand() % coupsEx.size();
                 pair<pair<int,int>,pair<int,int>> exemple = coupsEx[indEx];
