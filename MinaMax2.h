@@ -1,23 +1,19 @@
 #ifndef MINAMAX2_H_INCLUDED
 #define MINAMAX2_H_INCLUDED
 
-
 #include <iostream>
 #include <limits>
 #include "echec.h"
 using namespace std;
 #include <chrono>
 
-
-
-// Définir le temps limite en millisecondes
+// DÃ©finir le temps limite en millisecondes
 int tempsMax = 800;
 
 //Au debut, alpha=-inf, beta=+inf
 int alpha1 = std::numeric_limits<int>::min();
 int beta1 = std::numeric_limits<int>::max();
-
-
+// Fonction de base
 
 int MinMax(Echiquier* E, int profondeur, bool tour) {
     int Minmax;
@@ -50,16 +46,12 @@ int MinMax(Echiquier* E, int profondeur, bool tour) {
     return 0;
 }
 
+// Elagage alpha-beta
 
-
-// Fonction pour appeler AlphaBeta
-
-
-int AlphaBeta(Echiquier* E, int profondeur, bool tour, int alpha, int beta, int tempsMax)
-{
+int AlphaBeta(Echiquier* E, int profondeur, bool tour, int alpha, int beta, int tempsMax) {
     int valeur;
     auto tdebut = chrono::high_resolution_clock::now();
-    if (tempsMax<0)   // finir si le temps est dépassé
+    if (tempsMax<0)   // finir si le temps est dÃ©passÃ©
     {
         return E->Evaluation();
     }
@@ -112,12 +104,12 @@ int AlphaBeta(Echiquier* E, int profondeur, bool tour, int alpha, int beta, int 
 
 }
 
+// Choix du meilleur coup avec l'algorithme de base
 
-pair<pair<int, int>,pair <int,int>> meilleur_coup(Echiquier* E, int profondeur)
-{
+pair<pair<int, int>,pair <int,int>> meilleur_coup(Echiquier* E, int profondeur) {
     int m = std::numeric_limits<int>::max();
     vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(false); // vecteur des coups possibles
-    pair<pair<int, int>,pair <int,int>> choix=moves[0];
+    pair<pair<int, int>,pair <int,int>> choix = moves[0];
     int L = moves.size();
 
     for (int i=0;i<L;i++)
@@ -136,12 +128,12 @@ pair<pair<int, int>,pair <int,int>> meilleur_coup(Echiquier* E, int profondeur)
 
 }
 
+// Choix du meilleur coup avec la variante
 
-pair<pair<int, int>,pair <int,int>> meilleur_coup_alphabeta(Echiquier* E,int profondeur)
-{
+pair<pair<int, int>,pair <int,int>> meilleur_coup_alphabeta(Echiquier* E,int profondeur) {
     int m = std::numeric_limits<int>::max();
     vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(false); // vecteur des coups possibles
-    pair<pair<int, int>,pair <int,int>> choix=moves[0];
+    pair<pair<int, int>,pair <int,int>> choix = moves[0];
     int L = moves.size();
 
     for (int i=0;i<L;i++)
@@ -156,12 +148,6 @@ pair<pair<int, int>,pair <int,int>> meilleur_coup_alphabeta(Echiquier* E,int pro
 
     }
     return choix;
-
-
 }
-
-
-
-
 
 #endif // MINAMAX2_H_INCLUDED
