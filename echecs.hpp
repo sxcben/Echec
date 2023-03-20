@@ -155,8 +155,6 @@ private:
     // Vecteurs stockant les pieces mangees
     vector<Piece*> prisesBlanches_;
     vector<Piece*> prisesNoires_;
-    // Nombre de tours
-    int nbTour_ = 1;
 
 public:
 
@@ -218,9 +216,18 @@ public:
         cout << endl;
         cout << "      " << "\033[1;37;46m" << " Tour numero " << nbTour_ << " " << "\033[0m" << endl;
         cout << endl;
-        // Score de chaque joueur
-        cout << " Score de " << nom_joueur1 << " : " << "\033[1;30;47m" << Evaluation(true) << "\033[0m" << endl;
-        cout << " Score de " << nom_joueur2 << " : " << "\033[1;97;43m" << Evaluation(false) << "\033[0m" << endl;
+        // Valeur de l'echiquier
+        float val = Evaluation();
+        if(val>0) {
+            // Score sur fond blanc si les blancs dominent
+            cout << " Score" << " : " << "\033[1;30;47m" << Evaluation() << "\033[0m" << endl;
+        } else if(val<0) {
+            // Score sur fond marron si les noirs dominent
+            cout << " Score" << " : " << "\033[1;97;43m" << Evaluation() << "\033[0m" << endl;
+        } else {
+            // Score sur fond vert s'il y a egalite
+            cout << " Score" << " : " << "\033[1;32;42m" << Evaluation() << "\033[0m" << endl;
+        }
         cout << endl;
         // Plateau
         cout << "   A  B  C  D  E  F  G  H" << endl;
@@ -424,9 +431,6 @@ public:
     }
 
     bool DeplacerPiece(int i, int j, int m, int n, bool joueur) {
-        if(!joueur) {
-            nbTour_++;
-        }
         Piece* p = getPiece(i,j);
         // Si c'est un roi qui veut roque
         if(p->getType() == ROI && abs(n-j) == 2) {
@@ -439,8 +443,6 @@ public:
                 setPiece(i,8,nullptr);
                 setPiece(m,n,p);
                 setPiece(m,n-1,tourP);
-                p->incrementNbDeplacements();
-                tourP->incrementNbDeplacements();
                 return true;
             }
             // S'il fait un grand
@@ -450,8 +452,6 @@ public:
                 setPiece(i,1,nullptr);
                 setPiece(m,n,p);
                 setPiece(m,n+1,tourG);
-                p->incrementNbDeplacements();
-                tourG->incrementNbDeplacements();
                 return true;
             } else {
                 return false;
@@ -471,13 +471,15 @@ public:
                 // On deplace la piece
                 setPiece(i,j,nullptr);
                 setPiece(m,n,p);
-                p->incrementNbDeplacements();
                 return true;
             } else {
                 return false;
             }
         }
     }
+
+    // Nombre de tours
+    int nbTour_ = 1;
 
     // Regles speciales
 
@@ -581,7 +583,20 @@ public:
                     for(int m=1; m<=8; m++) {
                         for(int n=1; n<=8; n++) {
                             if(CoupValide(i,j,m,n,joueur) && !EchecApresDeplacement(i,j,m,n,joueur)) {
-                                return false;
+                                // Verification du roque pour corriger les bugs
+                                Piece* p = getPiece(i,j);
+                                if(p->getType() == ROI && abs(n-j) == 2) {
+                                    bool petitRoque = (m-j > 0) ? true : false;
+                                    if(Roque(joueur,petitRoque)) {
+                                        return false;
+                                    } else if(Roque(joueur,!petitRoque)) {
+                                        return false;
+                                    } else {
+                                        return true;
+                                    }
+                                } else {
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -649,7 +664,18 @@ public:
                     for(int m=1; m<=8; m++) {
                         for(int n=1; n<=8; n++) {
                             if(CoupValide(i,j,m,n,joueur) && !EchecApresDeplacement(i,j,m,n,joueur)) {
-                                coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                // Verification du roque pour corriger les bugs
+                                Piece* p = getPiece(i,j);
+                                if(p->getType() == ROI && abs(n-j) == 2) {
+                                    bool petitRoque = (m-j > 0) ? true : false;
+                                    if(Roque(joueur,petitRoque)) {
+                                        coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                    } else if(Roque(joueur,!petitRoque)) {
+                                        coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                    }
+                                } else {
+                                    coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                }
                             }
                         }
                     }
@@ -688,15 +714,15 @@ public:
         return score;
     }
 
-    float Evaluation(bool joueur) {
+    float Evaluation() {
         float alpha = 1.0;
         float beta = 0.5;
         float score = 0.0;
         // Score de fin de partie
-        if(Victoire(joueur)) {
+        if(Victoire(true)) {
             return INFINITY;
         }
-        else if(Victoire(!joueur)) {
+        else if(Victoire(false)) {
             return -INFINITY;
         }
         else if(Nul()) {
@@ -705,14 +731,14 @@ public:
         else {
             float valJoueur = 0.0;
             float valAdversaire = 0.0;
-            int contJoueur = Controle(joueur);
-            int contAdversaire = Controle(!joueur);
+            int contJoueur = Controle(true);
+            int contAdversaire = Controle(false);
             for(int i=1; i<=8; i++) {
                 for(int j=1; j<=8; j++) {
                     Piece* p = getPiece(i,j);
                     if(p != nullptr) {
                         float valPiece = p->getValeur();
-                        if(p->getEstBlanche() == joueur) {
+                        if(p->getEstBlanche()) {
                             valJoueur += valPiece;
                         } else {
                             valAdversaire += valPiece;
@@ -729,81 +755,146 @@ public:
 
 // Fonctions du MinMax
 
-float MinMax(Echiquier* etat, int profondeur, float alpha, float beta, bool joueurMax) {
-    if (profondeur == 0 || etat->Victoire(true) || etat->Victoire(false) || etat->Nul()) {
-        return etat->Evaluation(joueurMax);
+// Définir le temps limite en millisecondes
+int tempsMax = 800;
+
+//Au debut, alpha=-inf, beta=+inf
+int alpha1 = std::numeric_limits<int>::min();
+int beta1 = std::numeric_limits<int>::max();
+
+
+
+int MinMax(Echiquier* E, int profondeur, bool tour) {
+    int Minmax;
+
+    vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(tour); // vecteur des coups possibles
+    int L = moves.size();
+
+    if (E->Victoire(true) ||E->Victoire(false) ||E->Nul() || profondeur == 0) {
+        return E->Evaluation();
     }
 
-    if (joueurMax) {
-        float maxEval = -INFINITY;
-        for (auto const& coup : etat->CoupsPossibles(true)) {
-            Echiquier* copieEtat = new Echiquier(*etat);
-            copieEtat->DeplacerPiece(coup.first.first, coup.first.second, coup.second.first, coup.second.second,true);
-            float eval = MinMax(copieEtat, profondeur - 1, alpha, beta, false);
-            maxEval = max(maxEval, eval);
-            alpha = max(alpha, eval);
-            delete copieEtat;
-            if (beta <= alpha) break; // élagage alpha-bêta
+    if (tour) { // si c'est le tour du joueur humain
+        Minmax = std::numeric_limits<int>::min();
+        for (int i = 0; i < L; i++) {
+            Echiquier *G = new Echiquier(*E);
+            G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, tour);
+            Minmax = std::max(Minmax, MinMax(G, profondeur - 1, !tour));
         }
-        return maxEval;
-    } else {
-        float minEval = INFINITY;
-        for (auto const& coup : etat->CoupsPossibles(false)) {
-            Echiquier* copieEtat = new Echiquier(*etat);
-            copieEtat->DeplacerPiece(coup.first.first, coup.first.second, coup.second.first, coup.second.second, false);
-            float eval = MinMax(copieEtat, profondeur - 1, alpha, beta, true);
-            minEval = min(minEval, eval);
-            beta = min(beta, eval);
-            delete copieEtat;
-            if (beta <= alpha) break; // élagage alpha-bêta
-        }
-        return minEval;
+        return Minmax;
     }
+    else {
+        Minmax = std::numeric_limits<int>::max();
+        for (int i = 0; i < L; i++) {
+            Echiquier *G = new Echiquier(*E);
+            G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, tour);
+            Minmax = std::min(Minmax, MinMax(G, profondeur - 1, !tour));
+        }
+        return Minmax;
+    }
+    return 0;
 }
 
-pair<pair<int, int>, pair<int, int>> MinMaxWithID(Echiquier* etat, int profondeurMax, bool joueurMax, float alpha, float beta, int tempsMax) {
-    pair<pair<int, int>, pair<int, int>> meilleurCoup;
-    float eval;
-    float maxEval = -INFINITY;
-    float minEval = INFINITY;
-    int profondeur = 1;
-    auto tDebut = chrono::high_resolution_clock::now();
-    while(profondeur <= profondeurMax) {
-        if(joueurMax) {
-            maxEval = -INFINITY;
-            for(auto const& coup : etat->CoupsPossibles(true)) {
-                Echiquier* copieEtat = new Echiquier(*etat);
-                copieEtat->DeplacerPiece(coup.first.first, coup.first.second, coup.second.first, coup.second.second, true);
-                eval = MinMax(copieEtat, profondeur-1, alpha, beta, false);
-                if(eval > maxEval) {
-                    maxEval = eval;
-                    meilleurCoup = coup;
-                }
-                alpha = max(alpha, eval);
-                delete copieEtat;
-                if(beta <= alpha) break; // élagage alpha-bêta
+// Fonction pour appeler AlphaBeta
+
+int AlphaBeta(Echiquier* E, int profondeur, bool tour, int alpha, int beta, int tempsMax) {
+    int valeur;
+    auto tdebut = chrono::high_resolution_clock::now();
+    if (tempsMax<0)   // finir si le temps est dépassé
+    {
+        return E->Evaluation();
+    }
+    vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(tour); // vecteur des coups possibles
+    int L = moves.size();
+
+    if (E->Victoire(true) ||E->Victoire(false) ||E->Nul() || profondeur == 0) {
+        return E->Evaluation();
+    }
+
+    if (tour) { // si c'est le tour du joueur humain
+        valeur = std::numeric_limits<int>::min();
+        for (int i = 0; i < L; i++) {
+            Echiquier *G = new Echiquier(*E);
+            G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, tour);
+            auto tfin = chrono::high_resolution_clock::now();
+            auto duree = chrono::duration_cast<chrono::milliseconds>(tfin - tdebut).count();
+            tempsMax=tempsMax-duree;
+            int eval = AlphaBeta(G, profondeur - 1, !tour, alpha, beta,tempsMax);
+            valeur = std::max(valeur, eval);
+            alpha = std::max(alpha,eval);
+            if (beta<=alpha)
+            {
+                break;
             }
-        } else {
-            minEval = INFINITY;
-            for(auto const& coup : etat->CoupsPossibles(false)) {
-                Echiquier* copieEtat = new Echiquier(*etat);
-                copieEtat->DeplacerPiece(coup.first.first, coup.first.second, coup.second.first, coup.second.second, false);
-                eval = MinMax(copieEtat, profondeur-1, alpha, beta, true);
-                if(eval < minEval) {
-                    minEval = eval;
-                    meilleurCoup = coup;
-                }
-                beta = min(beta, eval);
-                delete copieEtat;
-                if(beta <= alpha) break; // élagage alpha-bêta
+
+        }
+        //return valeur;
+    }
+    else {
+        valeur = std::numeric_limits<int>::max();
+        for (int i = 0; i < L; i++) {
+            Echiquier *G = new Echiquier(*E);
+            G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, tour);
+            auto tfin = chrono::high_resolution_clock::now();
+            auto duree = chrono::duration_cast<chrono::milliseconds>(tfin - tdebut).count();
+            tempsMax=tempsMax-duree;
+            int eval = AlphaBeta(G, profondeur - 1, !tour, alpha, beta,tempsMax);
+            valeur = std::min(valeur, eval);
+            beta = std::min(beta,eval);
+            if (beta<=alpha)
+            {
+                break;
             }
         }
-        auto tFin = chrono::high_resolution_clock::now();
-        auto duree = chrono::duration_cast<chrono::milliseconds>(tFin - tDebut).count();
-        if (duree > tempsMax) break; // finir si le temps est dépassé
-        profondeur++;
+        //return valeur;
     }
-    return meilleurCoup;
+
+    return valeur;
+
+}
+
+pair<pair<int, int>,pair <int,int>> meilleur_coup(Echiquier* E, int profondeur) {
+    int m = std::numeric_limits<int>::max();
+    vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(false); // vecteur des coups possibles
+    pair<pair<int, int>,pair <int,int>> choix = moves[0];
+    int L = moves.size();
+
+    for (int i=0;i<L;i++)
+    {
+        Echiquier *G = new Echiquier(*E);
+        G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, false);
+        if (MinMax(G,profondeur,true)<m)
+        {
+            m=MinMax(G,profondeur,true);
+            choix=moves[i];
+        }
+
+    }
+    return choix;
+
+
+}
+
+pair<pair<int, int>,pair <int,int>> meilleur_coup_alphabeta(Echiquier* E,int profondeur) {
+    int m = std::numeric_limits<int>::max();
+    vector<pair<pair<int, int>,pair <int,int>>> moves = E->CoupsPossibles(false); // vecteur des coups possibles
+    pair<pair<int, int>,pair <int,int>> choix = moves[0];
+    int L = moves.size();
+
+    for (int i=0;i<L;i++)
+    {
+        Echiquier *G = new Echiquier(*E);
+        G->DeplacerPiece(moves[i].first.first,moves[i].first.second,moves[i].second.first, moves[i].second.second, false);
+        if (AlphaBeta(G,profondeur,true,alpha1,beta1,tempsMax)<m)
+        {
+            m=AlphaBeta(G,profondeur,true,alpha1,beta1,tempsMax);
+            choix=moves[i];
+        }
+
+    }
+    return choix;
+
+
 }
 
 // Creation de partie
@@ -854,33 +945,38 @@ void JouerUnJoueur() {
                     cout << "Deplacement invalide..." << endl;
                     continue;
                 }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
                 echiquier->Promotion();
             }
             else {
                 cout << endl;
                 cout << "Tour de l'ordinateur..." << endl;
 
-                vector<pair<pair<int,int>,pair<int,int>>> cp = echiquier->CoupsPossibles(false);
-                srand(time(nullptr));
-                int ind = rand() % cp.size();
-                pair<pair<int,int>,pair<int,int>> coup = cp[ind];
-                int x1 = coup.first.first;
-                int y1 = coup.first.second;
-                int x2 = coup.second.first;
-                int y2 = coup.second.second;
-                if(!echiquier->CoupValide(x1, y1, x2, y2, joueurBlanc) || !echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
-                    cout << "Deplacement invalide." << endl;
-                    continue;
-                }
+//                vector<pair<pair<int,int>,pair<int,int>>> cp = echiquier->CoupsPossibles(false);
+//                srand(time(nullptr));
+//                int ind = rand() % cp.size();
+//                pair<pair<int,int>,pair<int,int>> coup = cp[ind];
+//                int x1 = coup.first.first;
+//                int y1 = coup.first.second;
+//                int x2 = coup.second.first;
+//                int y2 = coup.second.second;
+//                if(!echiquier->CoupValide(x1, y1, x2, y2, joueurBlanc) || !echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
+//                    cout << "Deplacement invalide." << endl;
+//                    continue;
+//                }
 
-//                auto meilleurCoup = MeilleurCoup(echiquier, 3, false);
-//                int x1 = meilleurCoup.first.first;
-//                int y1 = meilleurCoup.first.second;
-//                int x2 = meilleurCoup.second.first;
-//                int y2 = meilleurCoup.second.second;
-//                echiquier->DeplacerPiece(x1, y1, x2, y2, false);
+                auto meilleurCoup = meilleur_coup_alphabeta(echiquier, 5);
+                int x1 = meilleurCoup.first.first;
+                int y1 = meilleurCoup.first.second;
+                int x2 = meilleurCoup.second.first;
+                int y2 = meilleurCoup.second.second;
+                echiquier->DeplacerPiece(x1, y1, x2, y2, false);
 
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
                 echiquier->Promotion();
+                (echiquier->nbTour_)++;
             }
             joueurBlanc = !joueurBlanc;
         }
@@ -958,6 +1054,8 @@ void JouerDeuxJoueurs() {
                     cout << "Deplacement invalide..." << endl;
                     continue;
                 }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
                 echiquier->Promotion();
             }
             else {
@@ -987,7 +1085,10 @@ void JouerDeuxJoueurs() {
                     cout << "Deplacement invalide..." << endl;
                     continue;
                 }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
                 echiquier->Promotion();
+                (echiquier->nbTour_)++;
             }
             joueurBlanc = !joueurBlanc;
         }
@@ -1015,5 +1116,6 @@ void JouerDeuxJoueurs() {
 
     }
 }
+
 
 #endif // ECHECS_HPP_INCLUDED
