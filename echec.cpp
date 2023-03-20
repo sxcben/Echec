@@ -1,9 +1,60 @@
 #include "echec.h"
 #include "MinaMax2.h"
 
-void Piece::print()
-{
-    string piece;
+// Classe Piece
+
+Piece::Piece(TypePiece tp, bool estBlanche) : type_(tp), estBlanche_(estBlanche) {
+        if(tp == ROI){
+            valeur_ = 0;
+            // Le roi ne peut bouger que d'une case autour de lui, sauf s'il veut roque
+            deplacements_ = {{-1,-1},{-1,0},{-1,1},{0,-2},{0,-1},{0,1},{0,2},{1,-1},{1,0},{1,1}};
+        }
+        if(tp == DAME || tp == TOUR){
+            valeur_ = 5;
+            // Le fou ne peut bouger qu'en diagonale, la dame peut
+            for(int i=1;i<8;i++){
+                deplacements_.push_back({-i,0});
+                deplacements_.push_back({0,-i});
+                deplacements_.push_back({0,i});
+                deplacements_.push_back({i,0});
+            }
+        }
+        if(tp == DAME || tp == FOU){
+            valeur_ = 3;
+            // La tour ne peut bouger que verticalement ou horizontalement, la dame peut
+            for(int i=1;i<8;i++){
+                deplacements_.push_back({-i,-i});
+                deplacements_.push_back({-i,i});
+                deplacements_.push_back({i,-i});
+                deplacements_.push_back({i,i});
+            }
+        }
+        if(tp == DAME){
+            valeur_ = 9;
+        }
+        if(tp == CAVALIER){
+            valeur_ = 3;
+            // Le cavalier ne peut bouger que d'un coin a un autre d'un rectangle 2x3
+            deplacements_ = {{-2,-1},{-2,1},{-1,-2},{-1,2},{1,-2},{1,2},{2,-1},{2,1}};
+        }
+        if(tp == PION){
+            valeur_ = 1;
+            // Le pion ne peut avancer que d'une case en verticalement, ou en diagonale s'il veut manger, sauf au depart ou il peut avancer de deux cases verticalement
+            if(estBlanche){
+                deplacements_ = {{-2,0},{-1,-1},{-1,0},{-1,1}};
+            } else {
+                deplacements_ = {{1,-1},{1,0},{1,1},{2,0}};
+            }
+        }
+        if(tp == VIDE){
+            valeur_ = 0;
+            deplacements_ = {{0,0}};
+            estBlanche_ = false;
+        }
+    }
+
+void Piece::print() {
+        string piece;
         switch(type_){
         case ROI :
             piece = "R";
@@ -40,118 +91,136 @@ void Piece::print()
         }
         if(estBlanche_){
             // On affiche les pieces blaches sur un fond blanc
-            cout  << piece ;
+//            cout << "\033[1;30;47m" << piece << "\033[0m";
+            cout << piece;
 
         } else {
             // On affiche les pieces noires sur un fond marron
-            cout << piece ;
+//            cout << "\033[1;97;43m" << piece << "\033[0m";
+            cout << piece;
 
         }
-
-//    string piece;
-//    string color;
-//    string reset = "\033[0m"; // Code pour réinitialiser la couleur
-//
-//    switch(type_){
-//        case ROI :
-//            piece = "R";
-//            break;
-//        case DAME :
-//            piece = "D";
-//            break;
-//        case TOUR :
-//            piece = "T";
-//            break;
-//        case FOU :
-//            piece = "F";
-//            break;
-//        case CAVALIER :
-//            piece = "C";
-//            break;
-//        case PION :
-//            piece = "P";
-//            break;
-//        case VIDE :
-//            piece = "  ";
-//            break;
-//        default :
-//            cout << "PI" << endl;
-//            return;
-//    }
-//
-//    // Choix de la couleur en fonction de la couleur de la pièce
-//    if(estBlanche_){
-//        color = "\033[1;37m"; // Blanc
-//    } else {
-//        color = "\033[0;33m"; // Marron
-//    }
-//
-//    if(type_ != VIDE){
-//        if(estBlanche_){
-//            piece.append("b");
-//        }
-//        else {
-//            piece.append("n");
-//        }
-//    }
-//
-//    // Affichage de la pièce avec la couleur choisie
-//    cout << color << piece << reset;
-
-}
+    }
 
 
+// Classe Echiquier
+
+Echiquier::Echiquier() : echiquier_(8, vector<Piece*>(8, nullptr)), tourHumain_(true) {
+        // Placement des pieces noires
+        setPiece(1, 1, new Piece(TOUR, false));
+        setPiece(1, 2, new Piece(CAVALIER, false));
+        setPiece(1, 3, new Piece(FOU, false));
+        setPiece(1, 4, new Piece(DAME, false));
+        setPiece(1, 5, new Piece(ROI, false));
+        setPiece(1, 6, new Piece(FOU, false));
+        setPiece(1, 7, new Piece(CAVALIER, false));
+        setPiece(1, 8, new Piece(TOUR, false));
+        for(int j = 1; j <= 8; j++) {
+            setPiece(2, j, new Piece(PION, false));
+        }
+        // Placement des pieces blanches
+        setPiece(8, 1, new Piece(TOUR, true));
+        setPiece(8, 2, new Piece(CAVALIER, true));
+        setPiece(8, 3, new Piece(FOU, true));
+        setPiece(8, 4, new Piece(DAME, true));
+        setPiece(8, 5, new Piece(ROI, true));
+        setPiece(8, 6, new Piece(FOU, true));
+        setPiece(8, 7, new Piece(CAVALIER, true));
+        setPiece(8, 8, new Piece(TOUR, true));
+        for(int j = 1; j <= 8; j++) {
+            setPiece(7, j, new Piece(PION, true));
+        }
+    }
+
+Echiquier::~Echiquier() {
+        for(int i=0; i<8; i++) {
+            for(int j=0; j<8; j++) {
+                delete echiquier_[i][j];
+            }
+        }
+    }
+
+Piece* Echiquier::getPiece(int i, int j) const {
+        return echiquier_[i-1][j-1];
+    }
+
+void Echiquier::setPiece(int i, int j, Piece* piece) {
+        echiquier_[i-1][j-1] = piece;
+    }
+
+bool Echiquier::getTour() const {
+        return tourHumain_;
+    }
+
+void Echiquier::setTour(bool Tour) {
+        tourHumain_ = Tour;
+    }
 
 void Echiquier::AfficherEchiquier(string nom_joueur1, string nom_joueur2) {
-    // En tete indiquant le nombre de tours realises
-    cout << endl;
-    cout << "      "  << " Tour numero " << nbTour_  << endl;
-    cout << endl;
-    // Score de chaque joueur
-    cout << " Score de : " << Evaluation() << endl;
-//    cout << " Score de " << nom_joueur2 << " : "  << Evaluation(false)  << endl;
-    cout << endl;
-    // Plateau
-    cout << "   A  B  C  D  E  F  G  H" << endl;
-    for(int i = 1; i <= 8; i++) {
-        cout << 9-i << " |";
-        for(int j = 1; j <= 8; j++) {
-            Piece* p = getPiece(i, j);
-            if(p != nullptr) {
-                if(p->getType() == ROI && Echec(p->getEstBlanche())) {
-                    // On affiche le roi en rouge s'il est en echec
-                    if(p->getEstBlanche()) {
-                        cout  << "Rb" ;
-                    } else {
-                        cout << "Rn" ;
-                    }
-                } else {
+        // En tete indiquant le nombre de tours realises
+        cout << endl;
+//        cout << "      " << "\033[1;37;46m" << " Tour numero " << nbTour_ << " " << "\033[0m" << endl
+        cout << "       Tour numero " << nbTour_ << endl;
+        cout << endl;
+        // Valeur de l'echiquier
+        float val = Evaluation();
+//        if(val>0) {
+//            // Score sur fond blanc si les blancs dominent
+//            cout << " Score" << " : " << "\033[1;30;47m" << val << "\033[0m" << endl;
+//        } else if(val<0) {
+//            // Score sur fond marron si les noirs dominent
+//            cout << " Score" << " : " << "\033[1;97;43m" << val << "\033[0m" << endl;
+//        } else {
+//            // Score sur fond vert s'il y a egalite
+//            cout << " Score" << " : " << "\033[1;32;42m" << val << "\033[0m" << endl;
+//        }
+        cout << " Score : " << val << endl;
+        cout << endl;
+        // Plateau
+        cout << "   A  B  C  D  E  F  G  H" << endl;
+        for(int i = 1; i <= 8; i++) {
+            cout << 9-i << " |";
+            for(int j = 1; j <= 8; j++) {
+                Piece* p = getPiece(i, j);
+                if(p != nullptr) {
+//                    if(p->getType() == ROI && Echec(p->getEstBlanche())) {
+//                        // On affiche le roi en rouge s'il est en echec
+//                        if(p->getEstBlanche()) {
+//                            cout << "\033[1;30;41m" << "Rb" << "\033[0m";
+//                        } else {
+//                            cout << "\033[1;97;41m" << "Rn" << "\033[0m";
+//                        }
+//                    } else {
+//                        p->print();
+//                    }
                     p->print();
+                } else {
+                    cout << "  ";
                 }
-            } else {
-                cout << "  ";
+                cout << "|";
             }
-            cout << "|";
+            cout << " " << 9-i << endl;
         }
-        cout << " " << 9-i << endl;
+        cout << "   A  B  C  D  E  F  G  H" << endl;
+        // Pieces mangees
+        cout << endl << "Pieces blanches prises : ";
+        sort(prisesBlanches_.begin(),prisesBlanches_.end(),[](Piece* pb1, Piece* pb2){return pb1->getValeur() > pb2->getValeur();});
+        for(Piece* pb : prisesBlanches_) {
+            pb->print();
+            cout << " ";
+        }
+        cout << endl << "Pieces noires prises : ";
+        sort(prisesNoires_.begin(),prisesNoires_.end(),[](Piece* pn1, Piece* pn2){return pn1->getValeur() > pn2->getValeur();});
+        for(Piece* pn : prisesNoires_) {
+            pn->print();
+            cout << " ";
+        }
+        cout << endl;
     }
-    cout << "   A  B  C  D  E  F  G  H" << endl;
-    // Pieces mangees
-    cout << endl << "Pieces blanches prises : ";
-    sort(prisesBlanches_.begin(),prisesBlanches_.end(),[](Piece* pb1, Piece* pb2){return pb1->getValeur() > pb2->getValeur();});
-    for(Piece* pb : prisesBlanches_) {
-        pb->print();
-        cout << " ";
-    }
-    cout << endl << "Pieces noires prises : ";
-    sort(prisesNoires_.begin(),prisesNoires_.end(),[](Piece* pn1, Piece* pn2){return pn1->getValeur() > pn2->getValeur();});
-    for(Piece* pn : prisesNoires_) {
-        pn->print();
-        cout << " ";
-    }
-    cout << endl;
-}
 
+bool Echiquier::caseVide(int i, int j) const {
+        return echiquier_[i-1][j-1] == nullptr;
+    }
 
 bool Echiquier::estAlliee(int i, int j, bool joueur) {
         Piece* p = getPiece(i,j);
@@ -161,7 +230,6 @@ bool Echiquier::estAlliee(int i, int j, bool joueur) {
         return false;
     }
 
-
 bool Echiquier::estAdverse(int i, int j, bool joueur) {
         Piece* p = getPiece(i,j);
         if(p != nullptr && p->getEstBlanche() != joueur) {
@@ -169,7 +237,6 @@ bool Echiquier::estAdverse(int i, int j, bool joueur) {
         }
         return false;
     }
-
 
 pair<int,int> Echiquier::PositionRoi(bool joueur) {
         for(int i=1; i<=8; i++) {
@@ -184,7 +251,6 @@ pair<int,int> Echiquier::PositionRoi(bool joueur) {
         // Au cas ou on ne trouve pas de roi (impossible en pratique)
         return make_pair(-1,-1);
     }
-
 
 bool Echiquier::CoupValide(int i, int j, int m, int n, bool joueur) {
         // On verifie que les coordonnees sont reelles
@@ -275,8 +341,6 @@ bool Echiquier::CoupValide(int i, int j, int m, int n, bool joueur) {
         return true;
     }
 
-
-
 bool Echiquier::Echec(bool joueur) {
         // On recupere la position du roi
         int m = PositionRoi(joueur).first;
@@ -291,8 +355,6 @@ bool Echiquier::Echec(bool joueur) {
         }
         return false;
     }
-
-
 
 bool Echiquier::EchecApresDeplacement(int i, int j, int m, int n, bool joueur) {
         // On verifie que le coup est valide
@@ -312,11 +374,7 @@ bool Echiquier::EchecApresDeplacement(int i, int j, int m, int n, bool joueur) {
         return echec;
     }
 
-
 bool Echiquier::DeplacerPiece(int i, int j, int m, int n, bool joueur) {
-        if(!joueur) {
-            nbTour_++;
-        }
         Piece* p = getPiece(i,j);
         // Si c'est un roi qui veut roque
         if(p->getType() == ROI && abs(n-j) == 2) {
@@ -329,8 +387,6 @@ bool Echiquier::DeplacerPiece(int i, int j, int m, int n, bool joueur) {
                 setPiece(i,8,nullptr);
                 setPiece(m,n,p);
                 setPiece(m,n-1,tourP);
-                p->incrementNbDeplacements();
-                tourP->incrementNbDeplacements();
                 return true;
             }
             // S'il fait un grand
@@ -340,8 +396,6 @@ bool Echiquier::DeplacerPiece(int i, int j, int m, int n, bool joueur) {
                 setPiece(i,1,nullptr);
                 setPiece(m,n,p);
                 setPiece(m,n+1,tourG);
-                p->incrementNbDeplacements();
-                tourG->incrementNbDeplacements();
                 return true;
             } else {
                 return false;
@@ -361,16 +415,12 @@ bool Echiquier::DeplacerPiece(int i, int j, int m, int n, bool joueur) {
                 // On deplace la piece
                 setPiece(i,j,nullptr);
                 setPiece(m,n,p);
-                p->incrementNbDeplacements();
                 return true;
             } else {
                 return false;
             }
         }
     }
-
-
-
 
 bool Echiquier::Roque(bool joueur, bool petitRoque) {
         // On recupere le roi et la tour
@@ -380,7 +430,7 @@ bool Echiquier::Roque(bool joueur, bool petitRoque) {
         int jTour = petitRoque ? 8 : 1;
         Piece* pRoi = getPiece(iRoi,jRoi);
         Piece* pTour = getPiece(iTour,jTour);
-        // On regarde si les pieces sont � leurs places
+        // On regarde si les pieces sont à leurs places
         if(pRoi == nullptr || pTour == nullptr) {
             return false;
         }
@@ -416,29 +466,46 @@ bool Echiquier::Roque(bool joueur, bool petitRoque) {
         return true;
     }
 
-
-
-
-
-void Echiquier::PionDame() {   //lorsqu'un pion arrive sur la ligne de l'ennemi
+void Echiquier::Promotion() {
         for(int j=1; j<=8; j++) {
             Piece* pB = getPiece(1,j);
             Piece* pN = getPiece(8,j);
             // Si un pion blanc atteint la ligne du haut, il devient une dame blanche
             if(pB != nullptr && pB->getType() == PION && pB->getEstBlanche()) {
                 delete pB;
-                setPiece(1, j, new Piece(DAME, true));
+                char nouvellePieceB;
+                cout << endl;
+                cout << "Que voulez-vous ? (D ou T ou F ou C) : ";
+                cin >> nouvellePieceB;
+                if(nouvellePieceB == 'T') {
+                    setPiece(1, j, new Piece(TOUR, true));
+                } else if(nouvellePieceB == 'F') {
+                    setPiece(1, j, new Piece(FOU, true));
+                } else if(nouvellePieceB == 'C') {
+                    setPiece(1, j, new Piece(CAVALIER, true));
+                } else {
+                    setPiece(1, j, new Piece(DAME, true));
+                }
             }
             // Si un pion noir atteint la ligne du bas, il devient une dame noire
             if(pN != nullptr && pN->getType() == PION && !pN->getEstBlanche()) {
                 delete pN;
-                setPiece(8, j, new Piece(DAME, false));
+                char nouvellePieceN;
+                cout << endl;
+                cout << "Que voulez-vous ? (D ou T ou F ou C) : ";
+                cin >> nouvellePieceN;
+                if(nouvellePieceN == 'T') {
+                    setPiece(8, j, new Piece(TOUR, false));
+                } else if(nouvellePieceN == 'F') {
+                    setPiece(8, j, new Piece(FOU, false));
+                } else if(nouvellePieceN == 'C') {
+                    setPiece(8, j, new Piece(CAVALIER, false));
+                } else {
+                    setPiece(8, j, new Piece(DAME, false));
+                }
             }
         }
     }
-
-
-
 
 bool Echiquier::EchecMat(bool joueur) {
         // On verifie que le joueur est bien en echec
@@ -453,7 +520,20 @@ bool Echiquier::EchecMat(bool joueur) {
                     for(int m=1; m<=8; m++) {
                         for(int n=1; n<=8; n++) {
                             if(CoupValide(i,j,m,n,joueur) && !EchecApresDeplacement(i,j,m,n,joueur)) {
-                                return false;
+                                // Verification du roque pour corriger les bugs
+                                Piece* p = getPiece(i,j);
+                                if(p->getType() == ROI && abs(n-j) == 2) {
+                                    bool petitRoque = (m-j > 0) ? true : false;
+                                    if(Roque(joueur,petitRoque)) {
+                                        return false;
+                                    } else if(Roque(joueur,!petitRoque)) {
+                                        return false;
+                                    } else {
+                                        return true;
+                                    }
+                                } else {
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -464,8 +544,9 @@ bool Echiquier::EchecMat(bool joueur) {
         return true;
     }
 
-
-
+bool Echiquier::Victoire(bool joueur) {
+        return EchecMat(!joueur);
+    }
 
 bool Echiquier::Pat(bool joueur) {
         // On verifie que le joueur n'est pas en echec
@@ -490,9 +571,6 @@ bool Echiquier::Pat(bool joueur) {
         return true;
     }
 
-
-
-
 bool Echiquier::Nul() {
         // On verifie s'il y a un pat
         if(Pat(true) || Pat(false)) {
@@ -513,7 +591,6 @@ bool Echiquier::Nul() {
         return false;
     }
 
-
 vector<pair<pair<int,int>,pair<int,int>>> Echiquier::CoupsPossibles(bool joueur) {
         vector<pair<pair<int,int>,pair<int,int>>> coups;
         for(int i=1; i<=8; i++) {
@@ -522,7 +599,18 @@ vector<pair<pair<int,int>,pair<int,int>>> Echiquier::CoupsPossibles(bool joueur)
                     for(int m=1; m<=8; m++) {
                         for(int n=1; n<=8; n++) {
                             if(CoupValide(i,j,m,n,joueur) && !EchecApresDeplacement(i,j,m,n,joueur)) {
-                                coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                // Verification du roque pour corriger les bugs
+                                Piece* p = getPiece(i,j);
+                                if(p->getType() == ROI && abs(n-j) == 2) {
+                                    bool petitRoque = (m-j > 0) ? true : false;
+                                    if(Roque(joueur,petitRoque)) {
+                                        coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                    } else if(Roque(joueur,!petitRoque)) {
+                                        coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                    }
+                                } else {
+                                    coups.push_back(make_pair(make_pair(i,j),make_pair(m,n)));
+                                }
                             }
                         }
                     }
@@ -531,9 +619,6 @@ vector<pair<pair<int,int>,pair<int,int>>> Echiquier::CoupsPossibles(bool joueur)
         }
         return coups;
     }
-
-
-
 
 int Echiquier::Controle(bool joueur) {
         int score = 0;
@@ -551,6 +636,10 @@ int Echiquier::Controle(bool joueur) {
                             // On rajoute la valeur de la piece adverse attaquee
                             if(estAdverse(m,n,joueur)) {
                                 score += getPiece(m,n)->getValeur();
+                                // Si on attaque le roi, on accorde de la valeur a cette position en prenant garde a ne pas perdre trop de points
+                                if(getPiece(m,n)->getType() == ROI) {
+                                    score += 40 - 2*getPiece(i,j)->getValeur();
+                                }
                             }
                         }
                     }
@@ -559,7 +648,6 @@ int Echiquier::Controle(bool joueur) {
         }
         return score;
     }
-
 
 float Echiquier::Evaluation() {
         float alpha = 1.0;
@@ -598,8 +686,10 @@ float Echiquier::Evaluation() {
         }
     }
 
-void Jouer_echec()   //ordi vs humain
-{
+
+// Creation de partie
+
+void Echiquier::JouerUnJoueur() {
     char rejouer = 'O';
     while (rejouer == 'O') {
 
@@ -614,51 +704,70 @@ void Jouer_echec()   //ordi vs humain
         cout << "Entrez votre nom : ";
         cin >> nom_joueur;
 
-        string nom_joueur2 = "ordinateur";
+        string nom_joueur2 = "l'ordinateur";
 
         while(!echiquier->Victoire(joueurBlanc) && !echiquier->Victoire(!joueurBlanc) && !echiquier->Nul()) {
             echiquier->AfficherEchiquier(nom_joueur,nom_joueur2);
             if(joueurBlanc) {
+                // Conseil aleatoire pour le joueur
+                vector<pair<pair<int,int>,pair<int,int>>> coupsEx = echiquier->CoupsPossibles(true);
+                srand(time(nullptr));
+                int indEx = rand() % coupsEx.size();
+                pair<pair<int,int>,pair<int,int>> exemple = coupsEx[indEx];
+                char dLettre = exemple.first.second + 64;
+                int dChiffre = 9 - exemple.first.first;
+                char aLettre = exemple.second.second + 64;
+                int aChiffre = 9 - exemple.second.first;
+
                 cout << endl;
                 cout << "A vous de jouer " << nom_joueur << "..." << endl;
                 string position1, position2;
-                cout << "Coordonnees de la piece a deplacer (ex: E2) : ";
+                cout << "Coordonnees de la piece a deplacer (ex: " << dLettre << dChiffre << ") : ";
                 cin >> position1;
                 int y1 = position1[0] - 'A' + 1;
                 int x1 = '9' - position1[1];
-                cout << "Coordonnees de la case de destination (ex: E4) : ";
+                cout << "Coordonnees de la case de destination (ex: " << aLettre << aChiffre << ") : ";
                 cin >> position2;
                 int y2 = position2[0] - 'A' + 1;
                 int x2 = '9' - position2[1];
-                if(!echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
+                if(!echiquier->CoupValide(x1, y1, x2, y2, joueurBlanc) || !echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
                     cout << endl;
                     cout << "Deplacement invalide..." << endl;
                     continue;
                 }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
+                echiquier->Promotion();
             }
             else {
                 cout << endl;
                 cout << "Tour de l'ordinateur..." << endl;
 
+//                vector<pair<pair<int,int>,pair<int,int>>> cp = echiquier->CoupsPossibles(false);
+//                srand(time(nullptr));
+//                int ind = rand() % cp.size();
+//                pair<pair<int,int>,pair<int,int>> coup = cp[ind];
+//                int x1 = coup.first.first;
+//                int y1 = coup.first.second;
+//                int x2 = coup.second.first;
+//                int y2 = coup.second.second;
+//                if(!echiquier->CoupValide(x1, y1, x2, y2, joueurBlanc) || !echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
+//                    cout << "Deplacement invalide." << endl;
+//                    continue;
+//                }
 
-
-                auto choix = meilleur_coup_alphabeta(echiquier, 5);
-                int x1 = choix.first.first;
-                int y1 = choix.first.second;
-                int x2 = choix.second.first;
-                int y2 = choix.second.second;
-
-                char x1_char = 'A' + x1;
-                char x2_char = 'A' + x2;
-                int y1_int = y1 + 1;
-                int y2_int = y2 + 1;
-
-                cout << "piece deplacee de " << x1_char << y1_int << " a " << x2_char << y2_int << endl;
-
+                auto meilleurCoup = meilleur_coup_alphabeta(echiquier, 5);
+                int x1 = meilleurCoup.first.first;
+                int y1 = meilleurCoup.first.second;
+                int x2 = meilleurCoup.second.first;
+                int y2 = meilleurCoup.second.second;
                 echiquier->DeplacerPiece(x1, y1, x2, y2, false);
 
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
+                echiquier->Promotion();
+                (echiquier->nbTour_)++;
             }
-            echiquier->PionDame();
             joueurBlanc = !joueurBlanc;
         }
         echiquier->AfficherEchiquier(nom_joueur,nom_joueur2);
@@ -685,9 +794,8 @@ void Jouer_echec()   //ordi vs humain
 
     }
 }
-void Jouer_echec2()     // humain vs humain
-{
 
+void Echiquier::JouerDeuxJoueurs() {
     char rejouer = 'O';
     while (rejouer == 'O') {
 
@@ -710,32 +818,24 @@ void Jouer_echec2()     // humain vs humain
         while(!echiquier->Victoire(joueurBlanc) && !echiquier->Victoire(!joueurBlanc) && !echiquier->Nul()) {
             echiquier->AfficherEchiquier(nom_joueur1,nom_joueur2);
             if(joueurBlanc) {
+                // Conseil aleatoire pour le joueur
+                vector<pair<pair<int,int>,pair<int,int>>> coupsEx = echiquier->CoupsPossibles(true);
+                srand(time(nullptr));
+                int indEx = rand() % coupsEx.size();
+                pair<pair<int,int>,pair<int,int>> exemple = coupsEx[indEx];
+                char dLettre = exemple.first.second + 64;
+                int dChiffre = 9 - exemple.first.first;
+                char aLettre = exemple.second.second + 64;
+                int aChiffre = 9 - exemple.second.first;
+
                 cout << endl;
                 cout << "A vous de jouer " << nom_joueur1 << "..." << endl;
-                string position1B, position2B;
-                cout << "Coordonnees de la piece a deplacer (ex: E2) : ";
-                cin >> position1B;
-                int y1B = position1B[0] - 'A' + 1;
-                int x1B = '9' - position1B[1];
-                cout << "Coordonnees de la case de destination (ex: E4) : ";
-                cin >> position2B;
-                int y2B = position2B[0] - 'A' + 1;
-                int x2B = '9' - position2B[1];
-                if(!echiquier->CoupValide(x1B, y1B, x2B, y2B, joueurBlanc) || !echiquier->DeplacerPiece(x1B, y1B, x2B, y2B, joueurBlanc)) {
-                    cout << endl;
-                    cout << "Deplacement invalide..." << endl;
-                    continue;
-                }
-            }
-            else {
-                cout << endl;
-                cout << "A vous de jouer " << nom_joueur2 << "..." << endl;
                 string position1, position2;
-                cout << "Coordonnees de la piece a deplacer (ex: E2) : ";
+                cout << "Coordonnees de la piece a deplacer (ex: " << dLettre << dChiffre << ") : ";
                 cin >> position1;
                 int y1 = position1[0] - 'A' + 1;
                 int x1 = '9' - position1[1];
-                cout << "Coordonnees de la case de destination (ex: E4) : ";
+                cout << "Coordonnees de la case de destination (ex: " << aLettre << aChiffre << ") : ";
                 cin >> position2;
                 int y2 = position2[0] - 'A' + 1;
                 int x2 = '9' - position2[1];
@@ -744,8 +844,42 @@ void Jouer_echec2()     // humain vs humain
                     cout << "Deplacement invalide..." << endl;
                     continue;
                 }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
+                echiquier->Promotion();
             }
-            echiquier->PionDame();
+            else {
+                // Conseil aleatoire pour le joueur
+                vector<pair<pair<int,int>,pair<int,int>>> coupsEx = echiquier->CoupsPossibles(false);
+                srand(time(nullptr));
+                int indEx = rand() % coupsEx.size();
+                pair<pair<int,int>,pair<int,int>> exemple = coupsEx[indEx];
+                char dLettre = exemple.first.second + 64;
+                int dChiffre = 9 - exemple.first.first;
+                char aLettre = exemple.second.second + 64;
+                int aChiffre = 9 - exemple.second.first;
+
+                cout << endl;
+                cout << "A vous de jouer " << nom_joueur2 << "..." << endl;
+                string position1, position2;
+                cout << "Coordonnees de la piece a deplacer (ex: " << dLettre << dChiffre << ") : ";
+                cin >> position1;
+                int y1 = position1[0] - 'A' + 1;
+                int x1 = '9' - position1[1];
+                cout << "Coordonnees de la case de destination (ex: " << aLettre << aChiffre << ") : ";
+                cin >> position2;
+                int y2 = position2[0] - 'A' + 1;
+                int x2 = '9' - position2[1];
+                if(!echiquier->CoupValide(x1, y1, x2, y2, joueurBlanc) || !echiquier->DeplacerPiece(x1, y1, x2, y2, joueurBlanc)) {
+                    cout << endl;
+                    cout << "Deplacement invalide..." << endl;
+                    continue;
+                }
+                Piece* p = echiquier->getPiece(x2,y2);
+                p->incrementNbDeplacements();
+                echiquier->Promotion();
+                (echiquier->nbTour_)++;
+            }
             joueurBlanc = !joueurBlanc;
         }
         echiquier->AfficherEchiquier(nom_joueur1,nom_joueur2);
@@ -771,4 +905,4 @@ void Jouer_echec2()     // humain vs humain
         }
 
     }
-};
+}
